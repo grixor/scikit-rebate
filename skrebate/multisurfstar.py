@@ -40,7 +40,7 @@ class MultiSURFstar(SURFstar):
     for the Genetic Analysis of Complex Human Diseases.
 
     """
-
+#another test
 ############################# MultiSURF* ########################################
     def _find_neighbors(self, inst):
         dist_vect = []
