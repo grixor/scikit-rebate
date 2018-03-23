@@ -206,7 +206,7 @@ def MultiSURF_compute_scores(inst, attr, nan_entries, num_attributes, NN_near, h
 
         return scores
 
-def MultiSURFstar_compute_scores(inst, attr, nan_entries, num_attributes, NN_near, NN_far, headers, class_type, X, y, labels_std):
+def MultiSURFstar_compute_scores(inst, attr, nan_entries, num_attributes, NN_near, NN_far, headers, class_type, X, y, labels_std): #Quite possibly an error here. 
     scores = np.zeros(num_attributes)
 
     for feature_num in range(num_attributes):

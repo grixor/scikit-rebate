@@ -145,7 +145,7 @@ class ReliefF(BaseEstimator):
         # Compute the distance array between all data points
         start = time.time()
 
-        #MODIFY: what is this code doing?
+        #MODIFY: what is this code doing? - separating discrete and continuous features for distance calcualtion
         attr = self._get_attribute_info()  #MODIFY: Why is this done a second time here? Just called above... Is there a more efficient way to do this?
         diffs, cidx, didx = self._dtype_array(attr)
         cdiffs = diffs[cidx]
@@ -155,7 +155,7 @@ class ReliefF(BaseEstimator):
         if self._missing_data_count > 0:
             self._distance_array = self._distarray_missing(xc, xd, cdiffs)
         else:
-            self._distance_array = self._distarray_no_missing(xc, xd)
+            self._distance_array = self._distarray_no_missing(xc, xd)  #MODIFY - Calls get_attribute again
 
         if self.verbose:
             elapsed = time.time() - start
@@ -163,7 +163,7 @@ class ReliefF(BaseEstimator):
             print('Feature scoring under way ...')
 
         start = time.time()
-        self.feature_importances_ = self._run_algorithm()  #MODIFY - it seems to me this called method does some things that are redundant with the above. 
+        self.feature_importances_ = self._run_algorithm()  #MODIFY - it seems to me this called method does some things that are redundant with the above. #calls get_attribute again
 
         if self.verbose:
             elapsed = time.time() - start
@@ -336,12 +336,12 @@ class ReliefF(BaseEstimator):
 
     def _run_algorithm(self):
         attr = self._get_attribute_info()  #MODIFY: AGAIN??
-        nan_entries = np.isnan(self._X)
+        nan_entries = np.isnan(self._X) #true false matrix of missingness (true is missing)
 
-        NNlist = map(self._find_neighbors, range(self._datalen))
+        NNlist = map(self._find_neighbors, range(self._datalen)) #array of data length arrays (each with neighbors of the given instance)
         scores = np.sum(Parallel(n_jobs=self.n_jobs)(delayed(
             ReliefF_compute_scores)(instance_num, attr, nan_entries, self._num_attributes,
             NN, self._headers, self._class_type, self._X, self._y, self._labels_std)
-             for instance_num, NN in zip(range(self._datalen), NNlist)), axis=0)
+             for instance_num, NN in zip(range(self._datalen), NNlist)), axis=0)  #summing over all instances - sums for one instance. 
 
         return np.array(scores)
