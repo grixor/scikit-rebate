@@ -26,7 +26,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 import numpy as np
 
-def get_row_missing(xc, xd, cdiffs, index, cindices, dindices):
+def get_row_missing(xc, xd, cdiffs, index, cindices, dindices):  #WHAT IS THIS? Appears to be part of distance calclation when there is missing data. 
     row = np.empty(0, dtype=np.double)
     cinst1 = xc[index]
     dinst1 = xd[index]
@@ -79,11 +79,11 @@ def compute_score(attr, NN, feature, inst, nan_entries, headers, class_type, X, 
     #--------------------------------------------------------------------------
     if ctype == 'discrete':
         for i in range(len(NN)):
-            if nan_entries[NN[i]][feature]:
+            if nan_entries[NN[i]][feature]:  #MODIFY: need to properly normalize for missing values. 
                 continue
 
             xNNifeature = X[NN[i]][feature]
-            absvalue = abs(xinstfeature - xNNifeature) / mmdiff
+            absvalue = abs(xinstfeature - xNNifeature) / mmdiff  #MODIFY: why divide by 1?
 
             if near:
                 if y[inst] == y[NN[i]]:   # HIT
@@ -116,16 +116,16 @@ def compute_score(attr, NN, feature, inst, nan_entries, headers, class_type, X, 
                         else: # discrete
                             diff_miss += 1
 
-        hit_proportion = count_hit / float(len(NN))
+        hit_proportion = count_hit / float(len(NN))   #NOTE: count hit and miss also take missing value normalization into account. 
         miss_proportion = count_miss / float(len(NN))
         diff = diff_hit * miss_proportion + diff_miss * hit_proportion
     #--------------------------------------------------------------------------
     else: # CONTINUOUS endpoint
-        mmdiff = attr[fname][3]
+        mmdiff = attr[fname][3]   #MODIFY: WHAT IS THIS???  (prenormalization already should have done division of diff between continuous values.  Can be ignored here. 
         same_class_bound = labels_std
 
         for i in range(len(NN)):
-            if nan_entries[NN[i]][feature]:
+            if nan_entries[NN[i]][feature]:  #MODIFY: need to properly normalize for missing values. 
                 continue
 
             xNNifeature = X[NN[i]][feature]

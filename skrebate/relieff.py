@@ -33,7 +33,6 @@ from sklearn.base import BaseEstimator
 from sklearn.externals.joblib import Parallel, delayed
 from .scoring_utils import get_row_missing, ReliefF_compute_scores
 
-#test comment - how about some more _add more text
 
 class ReliefF(BaseEstimator):
 
@@ -103,10 +102,10 @@ class ReliefF(BaseEstimator):
             # and n_neighbors misses
             self.n_neighbors = int(self.n_neighbors * self._datalen * 0.5)
         self._label_list = list(set(self._y))
-        discrete_label = (len(self._label_list) <= self.discrete_threshold)
+        discrete_label = (len(self._label_list) <= self.discrete_threshold)  #MODIFY: identify number of classes as well - not boolearn but get count then differentiate below
 
         if discrete_label:
-            self._class_type = 'discrete'
+            self._class_type = 'discrete' #MODIFY distinguish discrete from multiclass
         else:
             self._class_type = 'continuous'
 
@@ -120,10 +119,10 @@ class ReliefF(BaseEstimator):
 
         # Assign internal headers for the features
         # The pre_normalize() function relies on the headers being ordered, e.g., X01, X02, etc.
-        # If this is changed, then the sort in the pre_normalize() function needs to be adapted as well.
-        xlen = len(self._X[0])
+        # If this is changed, then the sort in the pre_normalize() function needs to be adapted as well.  #MODIFY: is this a problem for other datasets?
+        xlen = len(self._X[0])  #MODIFY: Why is this also needed? doesn't this appear above?
         mxlen = len(str(xlen + 1))
-        self._headers = ['X{}'.format(str(i).zfill(mxlen)) for i in range(1, xlen + 1)]
+        self._headers = ['X{}'.format(str(i).zfill(mxlen)) for i in range(1, xlen + 1)]  #MODIFY: why make up new headers list - are original headers restored at end?
 
         # Determine the data type
         C = D = False
@@ -146,7 +145,8 @@ class ReliefF(BaseEstimator):
         # Compute the distance array between all data points
         start = time.time()
 
-        attr = self._get_attribute_info()
+        #MODIFY: what is this code doing?
+        attr = self._get_attribute_info()  #MODIFY: Why is this done a second time here? Just called above... Is there a more efficient way to do this?
         diffs, cidx, didx = self._dtype_array(attr)
         cdiffs = diffs[cidx]
         xc = self._X[:,cidx]
@@ -163,7 +163,7 @@ class ReliefF(BaseEstimator):
             print('Feature scoring under way ...')
 
         start = time.time()
-        self.feature_importances_ = self._run_algorithm()
+        self.feature_importances_ = self._run_algorithm()  #MODIFY - it seems to me this called method does some things that are redundant with the above. 
 
         if self.verbose:
             elapsed = time.time() - start
@@ -173,7 +173,7 @@ class ReliefF(BaseEstimator):
         self.top_features_ = np.argsort(self.feature_importances_)[::-1]
 
         # Delete the internal distance array because it is no longer needed
-        del self._distance_array
+        del self._distance_array  #MODIFY: why is this done here? Couldn't this go after run_algorithm?
 
         return self
 
@@ -217,19 +217,19 @@ class ReliefF(BaseEstimator):
 ######################### SUPPORTING FUNCTIONS ###########################
     def _get_attribute_info(self):
         attr = dict()
-        d = 0
+        d = 0               #MODIFY: is this used for anything?
         limit = self.discrete_threshold
-        w = self._X.transpose()
+        w = self._X.transpose()   #transpose puts features as rows. 
 
-        for idx in range(len(w)):
+        for idx in range(len(w)): #For all features
             h = self._headers[idx]
             z = w[idx]
             if self._missing_data_count > 0:
-                z = z[np.logical_not(np.isnan(z))]
-            zlen = len(np.unique(z))
+                z = z[np.logical_not(np.isnan(z))]  #return boolean array - 1 or 0 if nan (boolean mask) 
+            zlen = len(np.unique(z)) #once missing values are removed with boolean mask identify the number of unique feature values. 
             if zlen <= limit:
                 attr[h] = ('discrete', 0, 0, 0)
-                d += 1
+                d += 1      #MODIFY: is this used for anything?
             else:
                 mx = np.max(z)
                 mn = np.min(z)
@@ -240,13 +240,13 @@ class ReliefF(BaseEstimator):
     def _distarray_no_missing(self, xc, xd):
         """Distance array for data with no missing values"""
         from scipy.spatial.distance import pdist, squareform
-        attr = self._get_attribute_info()
+        attr = self._get_attribute_info()  #MODIFY: Called again???
         #------------------------------------------#
         def pre_normalize(x):
             """Normalizes continuous features so they are in the same range"""
             idx = 0
             for i in sorted(attr.keys()):
-                if attr[i][0] == 'discrete':
+                if attr[i][0] == 'discrete':  
                     continue
                 cmin = attr[i][2]
                 diff = attr[i][3]
@@ -289,7 +289,7 @@ class ReliefF(BaseEstimator):
         """Distance array for data with missing values"""
         cindices = []
         dindices = []
-        for i in range(self._datalen):
+        for i in range(self._datalen):  #MODIFY: is prenormalization not completed in this situation, we need to stay consistent!
             cindices.append(np.where(np.isnan(xc[i]))[0])
             dindices.append(np.where(np.isnan(xd[i]))[0])
 
@@ -335,7 +335,7 @@ class ReliefF(BaseEstimator):
         return np.array(nn_list)
 
     def _run_algorithm(self):
-        attr = self._get_attribute_info()
+        attr = self._get_attribute_info()  #MODIFY: AGAIN??
         nan_entries = np.isnan(self._X)
 
         NNlist = map(self._find_neighbors, range(self._datalen))
